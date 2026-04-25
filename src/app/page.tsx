@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 import ProductListSec from "@/components/common/ProductListSec";
@@ -7,16 +7,15 @@ import DressStyle from "@/components/homepage/DressStyle";
 import Header from "@/components/homepage/Header";
 import Reviews from "@/components/homepage/Reviews";
 import { Product } from "@/types/product.types";
-// import { reviewsData } from "./path-to-your-data"; // keep reviews
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("https://fakestoreapi.com/products")
       .then((res) => res.json())
       .then((data) => {
-        // map API data to your Product type
         const mapped = data.map((item: any) => ({
           id: item.id,
           title: item.title,
@@ -31,37 +30,51 @@ export default function Home() {
         }));
 
         setProducts(mapped);
-      });
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
+
+  // ✅ SAFE FALLBACKS (prevent crash)
+  const safeProducts = products || [];
 
   return (
     <>
       <Header />
       <Brands />
+
       <main className="my-[50px] sm:my-[72px]">
-        <ProductListSec
-          title="NEW ARRIVALS"
-          data={products.slice(0, 4)}
-          viewAllLink="/shop#new-arrivals"
-        />
+        {/* ✅ Loading fallback */}
+        {loading ? (
+          <p className="text-center">Loading products...</p>
+        ) : (
+          <>
+            <ProductListSec
+              title="NEW ARRIVALS"
+              data={safeProducts.slice(0, 4)}
+              viewAllLink="/shop#new-arrivals"
+            />
 
-        <div className="max-w-frame mx-auto px-4 xl:px-0">
-          <hr className="h-[1px] border-t-black/10 my-10 sm:my-16" />
-        </div>
+            <div className="max-w-frame mx-auto px-4 xl:px-0">
+              <hr className="h-[1px] border-t-black/10 my-10 sm:my-16" />
+            </div>
 
-        <div className="mb-[50px] sm:mb-20">
-          <ProductListSec
-            title="TOP SELLING"
-            data={products.slice(4, 8)}
-            viewAllLink="/shop#top-selling"
-          />
-        </div>
+            <div className="mb-[50px] sm:mb-20">
+              <ProductListSec
+                title="TOP SELLING"
+                data={safeProducts.slice(4, 8)}
+                viewAllLink="/shop#top-selling"
+              />
+            </div>
 
-        <div className="mb-[50px] sm:mb-20">
-          <DressStyle />
-        </div>
+            <div className="mb-[50px] sm:mb-20">
+              <DressStyle />
+            </div>
 
-        {/* <Reviews data={reviewsData} /> */}
+            {/* Optional */}
+            {/* <Reviews data={reviewsData} /> */}
+          </>
+        )}
       </main>
     </>
   );
